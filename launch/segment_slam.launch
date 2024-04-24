@@ -22,4 +22,8 @@
     <node name="segment_slam" pkg="active_slam" type="gt_locations_node.py" output="screen" respawn="false" >
     </node>
 
+
+    <node name="segment_slam" pkg="active_slam" type="yolo_node.py" output="screen" respawn="false" >
+    </node>
+
 </launch>

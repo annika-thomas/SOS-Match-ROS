@@ -34,11 +34,31 @@ from geometry_msgs.msg import Point
 
 from utils import T_2_pose_msg, pose_msg_2_T
 
+import cv2 as cv
+import rospy
+import cv_bridge
+import yolov7_package as yolo
+import sensor_msgs.msg as sensor_msgs
+from sensor_msgs.msg import Image
+from geometry_msgs.msg import Pose2D
+from std_msgs.msg import Header
+from vision_msgs.msg import BoundingBox2D
+from vision_msgs.msg import Detection2D
+from vision_msgs.msg import Detection2DArray
+from vision_msgs.msg import ObjectHypothesisWithPose
+from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import Pose
+import numpy as np
+import cv2
+
 class SAM_DA_node:
 
     def __init__(self):
         
         # internal variables
+        self.node_name = rospy.get_name()
+        self.detector = yolo.Yolov7Detector()
+        self.detector.conf_thres = 0.75
         self.bridge = cv_bridge.CvBridge()
         self.counter = 0
         # TODO: make rosparam
@@ -291,6 +311,26 @@ class SAM_DA_node:
             packet.incremental_pose.pose = T_2_pose_msg(noise_matrix @ incremental_pose) # noise needs to be applied after finding the true incremental pose
             packet.incremental_pose.covariance = np.diag([xyz_cov, xyz_cov, xyz_cov, rpy_cov, rpy_cov, rpy_cov]).reshape(-1)
 
+        [backpack_x, backpack_y] = [500, 500]
+
+        _classes, _boxes, _confidences = self.detector.detect(img)
+        detections = Detection2DArray()
+        detections.header = img_msg.header
+        for classes, boxes, confidences in zip(_classes, _boxes, _confidences):
+            for cls, box, conf in zip(classes, boxes, confidences):
+                if self.detector.names[cls] == 'backpack':
+                    img = cv.rectangle(img, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0,0,255), 2)
+                    # make bbox; msg measurements are in pixels
+                    backpack_x = (box[0]+box[2])/2
+                    backpack_y = (box[1]+box[3])/2
+
+        # make an array of track object types and call them all "landmark"
+        track_classes = []
+        for track in tracks:
+            track_classes.append("landmark")
+
+        print("Track Classes: ", track_classes)
+
         for track in self.blobTracker.tracks:
 
             # print("Track ID: ", track.trackId)
@@ -310,6 +350,12 @@ class SAM_DA_node:
             current_px_coords, current_desc = track.getPxcoordsAndDescriptorsForFrame(counter)
             current_sift = current_desc[1]
             #print(f"current sift: {current_sift}")
+
+            # if current_px_coords are less than 0.5 away from [backpack_x, backpack_y], change track_classes[track.trackId] to "backpack"
+            if current_px_coords is not None:
+                dist = np.linalg.norm(np.array([backpack_x, backpack_y]) - np.array([current_px_coords[0], current_px_coords[1]]))
+                if dist < 0.2:
+                    track_classes[track.trackId] = "backpack"
 
             # If the track has been seen in 3 frames and pixel coordinates is not none, add all three to the measurement packet
             if num_track_id == 3 and current_px_coords is not None:
@@ -441,16 +487,17 @@ class SAM_DA_node:
 
             Obj = motlee_msgs.Obj()
             Obj.id = idx
-            Obj.class_name = "landmark"
+            Obj.class_name = track_classes[idx-1]
             Obj.position = geometry_msgs.Point(x=x, y=y, z=z)
             Obj.covariance = np.diag([0.0, 0.0, 0.0]).reshape(-1)
             Obj.width = 0.0
             Obj.height = 0.0
             Obj.ell = 0.0
 
+            print(track_classes[idx-1])
+
             obj_packet.objects.append(Obj)
 
-        
         # print(packet)
         self.meas_pub.publish(packet)
 
