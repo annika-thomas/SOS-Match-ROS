@@ -55,6 +55,8 @@ add_message_files(
   GraphNode.msg
   GraphEdge.msg
   Graph.msg
+  Obj.msg
+  ObjArray.msg
 )
 
 ## Generate services in the 'srv' folder
