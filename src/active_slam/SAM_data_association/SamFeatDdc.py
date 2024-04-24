@@ -1,4 +1,4 @@
-from active_slam.BlobTracker import FeatureDetectorDescriptorAndComparer
+from active_slam.SAM_data_association.BlobTrackerRT import FeatureDetectorDescriptorAndComparer
 from active_slam.SAM_data_association.SamModel import SamModel
 from active_slam.SAM_data_association.utils import blobTouchesBorder, compute_blob_mean_and_covariance, covSize, plotErrorEllipse
 from active_slam.SAM_data_association.AssociationWeighting import weightAssociation

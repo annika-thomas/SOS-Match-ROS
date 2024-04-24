@@ -7,7 +7,7 @@ from gtsam import (Cal3_S2, Cal3DS2, DoglegOptimizer,
     NonlinearFactorGraph, PinholeCameraCal3_S2, Point2, Point3,
     Pose3, PriorFactorPoint3, PriorFactorPose3, Rot3, Values, BetweenFactorPose3, symbol_shorthand)
 from active_slam.SAM_data_association.utils import transfFromRotAndTransl
-from active_slam.BlobTracker import BlobTracker
+from active_slam.SAM_data_association.BlobTrackerRT import BlobTracker
 
 class BlobSfm:
     def __init__(self, fx, fy, s, u0, v0, k1, k2, p1, p2, pixelMsmtNoiseStd, huberParam=1.0, minNumObservations=3, priorConfig=None):
