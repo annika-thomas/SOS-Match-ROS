@@ -13,7 +13,7 @@ from geometry_msgs.msg import Pose2D, PoseWithCovariance
 # ROS msgs
 import nav_msgs.msg as nav_msgs
 import sensor_msgs.msg as sensor_msgs
-# import active_slam.msg as active_slam_msgs
+import active_slam.msg as active_slam_msgs
 import motlee_msgs.msg as motlee_msgs
 import std_msgs.msg as std_msgs
 import geometry_msgs.msg as geometry_msgs
