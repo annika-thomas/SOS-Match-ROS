@@ -14,6 +14,7 @@ from geometry_msgs.msg import Pose2D, PoseWithCovariance
 import nav_msgs.msg as nav_msgs
 import sensor_msgs.msg as sensor_msgs
 import active_slam.msg as active_slam_msgs
+import motlee_msgs.msg as motlee_msgs
 import std_msgs.msg as std_msgs
 import geometry_msgs.msg as geometry_msgs
 
@@ -132,7 +133,7 @@ class SAM_DA_node:
         self.vis_pub = rospy.Publisher("/frame_vis", sensor_msgs.Image, queue_size=5)
         self.undistorted_img_pub = rospy.Publisher("/undistorted_vis", sensor_msgs.Image, queue_size=5)
         self.pose_transformed_pub = rospy.Publisher("/pose_transformed", geometry_msgs.PoseStamped, queue_size=5)
-        self.obj_pub = rospy.Publisher("/object_locations", active_slam_msgs.ObjArray, queue_size=5)
+        self.obj_pub = rospy.Publisher("object_locations_packet", motlee_msgs.ObjArray, queue_size=5)
 
         # initialize last image and pose
         self.last_image = None
@@ -222,67 +223,17 @@ class SAM_DA_node:
         undist_img_msg = self.bridge.cv2_to_imgmsg(img, encoding="bgr8")
         undist_img_msg.header = img_msg.header
         self.undistorted_img_pub.publish(undist_img_msg)
-        # extract camera intrinsics
-        # K = np.array([cam_info_msg.K]).reshape((3,3))
 
         cropped_u = 250
         cropped_v = 250
 
         k_crop = np.array([[nk[0,0], 0, cropped_u], [0, nk[1,1], cropped_v], [0, 0, 1]])
 
-        #extract pose from odom msg using position and orientation
-        # r_quat = Rot.from_quat([odom_msg.pose.orientation.x, odom_msg.pose.orientation.y, \
-        # odom_msg.pose.orientation.z, odom_msg.pose.orientation.w])
-
-        # # Trying to get correct rotation matrix
-        # rotation_matrix = r_quat.as_matrix()
-        # original_rotation_matrix = rotation_matrix
-
-        # # Create rotation objects for the specified rotations
-        # rot_x_270 = Rot.from_euler('x', 180, degrees=True)
-        # rot_z_270 = Rot.from_euler('z', 0, degrees=True)
-        # # rot_z_180 = Rot.from_euler('z', 180, degrees=True)
-
-        # # Apply rotations to the rotation matrix
-        # rotated_matrix = rot_z_270.apply(rot_x_270.apply(original_rotation_matrix))
-
-        # R = Rot.from_matrix(rotated_matrix)
-
-        # # invert R 
-        # R = np.linalg.inv(R.as_matrix())
-
-        # R = Rot.from_matrix(R)
-
-        # R = Rot.from_quat([odom_msg.pose.orientation.x, odom_msg.pose.orientation.y, \
-        #                    odom_msg.pose.orientation.z, odom_msg.pose.orientation.w])
-        # R = np.linalg.inv(R.as_matrix())
-
-        # LAST WORKING WHEN UNCOMMENTED THIS:
-        #R = np.linalg.inv(Rot.from_quat([odom_msg.pose.orientation.x, odom_msg.pose.orientation.y, odom_msg.pose.orientation.z, odom_msg.pose.orientation.w]).as_matrix())
-
         R = Rot.from_quat([odom_msg.pose.orientation.x, odom_msg.pose.orientation.y, odom_msg.pose.orientation.z, odom_msg.pose.orientation.w]).as_matrix()
-
-        #print("R: ", R)
-
-        # Transformatoin matrix T^b_w (from world to body)
-        # T_b_w = np.zeros((4,4))
-        # T_b_w[:3, :3] = np.linalg.inv(Rot.from_quat([pose[0], pose[1], pose[2], pose[3]]).as_matrix()) #from_quat() takes as input a quaternion in the form [x, y, z, w]
-        # T_b_w[:3, 3] = -np.matmul(T_b_w[:3,:3], np.array(pose[0:3]))
-        # T_b_w[3, 3] = 1.0
-
 
         # R = Rot.from_matrix(rotated_matrix)
         t = np.array([odom_msg.pose.position.x, odom_msg.pose.position.y, odom_msg.pose.position.z])
         T = np.eye(4); T[:3,:3] = R; T[:3,3] = t
-
-        # tf = np.array([
-        #     [-6.12323400e-17, -1.00000000e+00,  7.49879891e-33, -3.00000000e-02],
-        #     [-1.00000000e+00,  6.12323400e-17,  1.22464680e-16, -7.00000000e-02],
-        #     [-1.22464680e-16,  0.00000000e+00, -1.00000000e+00, -1.50000000e-02],
-        #     [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  1.00000000e+00]])
-            
-        # # transform with tf by multiplying them
-        # T = np.dot(T, tf)
 
         # Publish the pose transformed
         pose_transformed_msg = geometry_msgs.PoseStamped()
@@ -471,7 +422,6 @@ class SAM_DA_node:
             text_marker.color.b = 1.0
             text_marker.text = f"{idx}"
 
-
             # Set point coordinates
             p = Point()
             x, y, z = components
@@ -485,16 +435,11 @@ class SAM_DA_node:
             text_marker.pose.position.y = y + 0.1
             text_marker.pose.position.z = z + 0.1
 
-            # p.x = x  # Replace with your point coordinates
-            # p.y = y
-            # p.z = z
-            # marker.points.append(p)
-
             # Publish the marker
             self.marker_pub.publish(marker)
             self.marker_text_pub.publish(text_marker)
 
-            Obj = active_slam_msgs.Obj()
+            Obj = motlee_msgs.Obj()
             Obj.id = idx
             Obj.class_name = "landmark"
             Obj.position = geometry_msgs.Point(x=x, y=y, z=z)
