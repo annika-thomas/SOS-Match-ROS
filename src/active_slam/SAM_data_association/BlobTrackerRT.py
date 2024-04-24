@@ -380,7 +380,7 @@ class BlobTracker:
                                     pixelDistanceMatrix = np.zeros((1,len(new_keypoints)))
                             
                             # Define similarity using descriptor and Mahalanobis distance in pixel coordinates
-                            if (pixelPositionChangeMahalanobisDist < 2.0):
+                            if (pixelPositionChangeMahalanobisDist < 2.0): # CHANGED: WAS 2.0
                                 similarity = descriptor_similarity_val
                             else:
                                 similarity = 0
@@ -465,6 +465,7 @@ class BlobTracker:
                 ft = FeatureTrack(self.numTracks)
                 ft.addDetection(self.latestKeyframeIndex, new_keypoints[newKeypointIdx], new_descriptors[newKeypointIdx], new_sizes[newKeypointIdx])
                 #self.log(f"Adding detection of new track {ft.getTrackId()} at keyframe {self.latestKeyframeIndex} at pixel coordinates {new_keypoints[newKeypointIdx]}")
+                #print("frame id: ", self.latestKeyframeIndex)
                 self.tracks.append(ft)
 
     def getFeatureTracks(self):
@@ -508,6 +509,32 @@ class BlobTracker:
         # Visualize detections and descriptions
         self.ddc.visualize(ax, image, detections, descriptions)
         ax.text(20,40,frameName)
+
+    def visualizeFrameROS(self, frameId):
+        image = self.keyframeImages[frameId]
+
+        detections = self.detectionHistory[frameId]
+        descriptions = self.descriptorHistory[frameId]
+        sizes = self.detectionSizeHistory[frameId]
+        frameName = self.frameNamesHistory[frameId]
+
+        cm = plt.get_cmap('tab20')
+
+        # Draw track IDs and ellipses using OpenCV
+        for track in self.tracks:
+            if track.trackSeenInFrame(frameId):
+                trackId = track.getTrackId()
+                size_mean, size_std = track.getSizeStatistics()
+                px_coords, descriptor = track.getPxcoordsAndDescriptorsForFrame(frameId)
+
+                color = tuple([int(255*x) for x in cm(trackId%20)[:3]])  # Convert matplotlib color to OpenCV BGR color
+
+                # Draw text and ellipses
+                cv2.putText(image, str(trackId), (int(px_coords[0]), int(px_coords[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+                cv2.circle(image, (int(px_coords[0]), int(px_coords[1])), int(size_mean + size_std), color, 2)
+                cv2.circle(image, (int(px_coords[0]), int(px_coords[1])), int(size_mean - size_std), color, 2)
+
+        return image
 
     def log(self,string):
         if (self.logger is not None):

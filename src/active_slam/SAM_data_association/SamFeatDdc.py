@@ -60,6 +60,12 @@ class SamFeatDdc(FeatureDetectorDescriptorAndComparer):
                     else:
                         blob_size = covSize(blob_cov)
 
+                    if blob_size > 150:
+                        break
+
+                    elif blob_size < 3:
+                        break
+
                     # Store centroids and covariances in lists
                     blob_means.append(blob_mean)
                     blob_covs.append(blob_cov)

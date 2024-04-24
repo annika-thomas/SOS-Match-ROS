@@ -6,6 +6,7 @@ import os
 import logging
 import sys
 from active_slam.SAM_data_association.Open3dVisualizer import Open3dVisualizer
+from scipy.spatial.transform import Rotation as Rot
 
 def readConfig(pathToConfigFile):
     with open(pathToConfigFile, "r") as ymlfile:
@@ -264,3 +265,90 @@ def rotate_3d_points_around_z(points, angle_deg):
     final_points = rotated_points + centroid
     
     return final_points
+
+def compute_3d_position_of_centroid(pixel, pose, camera, K):
+
+    # get x_im from pixel
+    x_im = np.array([pixel[0], pixel[1], 1.0])
+
+    R = pose[:3, :3]
+    t = pose[:3, 3]
+
+
+    # Transformatoin matrix T^b_w (from world to body)
+    T_b_w = np.zeros((4,4))
+    #T_b_w[:3, :3] = np.linalg.inv(Rot.from_quat([pose[0], pose[1], pose[2], pose[3]]).as_matrix()) #from_quat() takes as input a quaternion in the form [x, y, z, w]
+    T_b_w[:3, :3] = np.linalg.inv(R)
+    #T_b_w[:3, 3] = -np.matmul(T_b_w[:3,:3], np.array(pose[0:3]))
+    T_b_w[:3, 3] = -np.matmul(T_b_w[:3,:3], t)
+    T_b_w[3, 3] = 1.0
+
+    #T_b_w = pose
+
+    # Transformation matrix T^c_b (from body to camera)
+    T_c_b = get_transformation_from_body_to_camera('t265_fisheye1')
+
+    # # Transformation matrix T^c_w (from world to camera)
+    T_c_w = np.matmul(T_c_b, T_b_w)
+
+    #T_c_w = T_b_w
+
+    # Get T and R from T_c_w
+    R_c_w = T_c_w[:3, :3]
+    t_c_w = T_c_w[:3, 3]
+
+    # Get X_o from pose (or you can get it by - np.linalg.inv(R_c_w) @ t_c_w)
+    # X_o = np.array(pose[0:3]) + camera_translation # which is the same as - np.linalg.inv(R_c_w) @ t_c_w
+    X_o = - np.linalg.inv(R_c_w) @ t_c_w
+
+    #print("X_o: ", X_o)
+
+    # compute lambda (depth) in X_w = X_o + lambda * (K * R_c_w)^-1 * x_im using flat earth assumption
+    lambda_ = (0 - X_o[2]) / (np.matmul(np.linalg.inv(np.matmul(K, R_c_w)), x_im)[2])
+
+    # compute X_w
+    X_w = X_o + lambda_ * np.matmul(np.linalg.inv(np.matmul(K, R_c_w)), x_im)
+
+    if lambda_ < 0:
+        # raise ValueError(f"lambda_ {lambda_} < 0 \n pixel: {pixel}")
+        print(f"lambda_ {lambda_} < 0 \n pixel: {pixel}")
+        return 
+    
+    if abs(X_w[2]) > 1e-2:
+        raise ValueError(f"X_w[2] {X_w[2]} is not 0")
+
+    return [X_w[0], X_w[1], 0]
+
+def get_transformation_from_body_to_camera(camera):
+    T_c_b = np.zeros((4,4))
+    if camera == 'voxl':
+        T_c_b[:3, :3] = get_rotation_matrix(0, -135, 90)
+        camera_translation = np.array([0.09, 0.0, -0.03])
+    elif camera == 't265_fisheye1':
+        T_c_b[:3, :3] = get_rotation_matrix(0, 180, 90) #https://www.intelrealsense.com/wp-content/uploads/2019/09/Intel_RealSense_Tracking_Camera_Datasheet_Rev004_release.pdf
+        camera_translation = np.array([-0.07, -0.03, -0.015])
+    elif camera == 't265_fisheye2':
+        T_c_b[:3, :3] = get_rotation_matrix(0, 180, 90) #https://www.intelrealsense.com/wp-content/uploads/2019/09/Intel_RealSense_Tracking_Camera_Datasheet_Rev004_release.pdf
+        camera_translation = np.array([-0.07, 0.03, -0.015])
+    elif camera == 'sim_camera':
+        T_c_b[:3, :3] = get_rotation_matrix(0, 180, 90)
+        camera_translation = np.array([0.0, 0.0, 0.0])
+    else:
+        raise ValueError(f"Invalid camera name in get_transformation_from_body_to_camera(): {camera}")
+    
+    T_c_b[:3, 3] = -np.matmul(T_c_b[:3, :3], camera_translation)
+    T_c_b[3, 3] = 1.0
+    
+    return T_c_b
+
+def get_rotation_matrix(roll, pitch, yaw):
+    roll = np.deg2rad(roll)
+    pitch = np.deg2rad(pitch)
+    yaw = np.deg2rad(yaw)
+
+    R_r = np.array([[1, 0, 0], [0, np.cos(roll), -np.sin(roll)], [0, np.sin(roll), np.cos(roll)]])
+    R_p = np.array([[np.cos(pitch), 0, np.sin(pitch)], [0, 1, 0], [-np.sin(pitch), 0, np.cos(pitch)]])
+    R_y = np.array([[np.cos(yaw), -np.sin(yaw), 0], [np.sin(yaw), np.cos(yaw), 0], [0, 0, 1]])
+
+    R = np.matmul(R_y, np.matmul(R_p, R_r))
+    return R
