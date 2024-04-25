@@ -153,7 +153,7 @@ class SAM_DA_node:
         self.vis_pub = rospy.Publisher("/frame_vis", sensor_msgs.Image, queue_size=5)
         self.undistorted_img_pub = rospy.Publisher("/undistorted_vis", sensor_msgs.Image, queue_size=5)
         self.pose_transformed_pub = rospy.Publisher("/pose_transformed", geometry_msgs.PoseStamped, queue_size=5)
-        self.obj_pub = rospy.Publisher("object_locations_packet", motlee_msgs.ObjArray, queue_size=5)
+        self.obj_pub = rospy.Publisher("/drone/map", motlee_msgs.ObjArray, queue_size=5)
 
         # initialize last image and pose
         self.last_image = None
