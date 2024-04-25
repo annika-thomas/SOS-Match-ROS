@@ -97,8 +97,8 @@ class SAM_DA_node:
         # for highbay
         subs = [
             #message_filters.Subscriber("NX04/odometry", nav_msgs.Odometry, queue_size=100),
-            message_filters.Subscriber("NX08/world", geometry_msgs.PoseStamped, queue_size=10),
-            message_filters.Subscriber("NX08/t265/fisheye1/image_raw",
+            message_filters.Subscriber("NX04/world", geometry_msgs.PoseStamped, queue_size=10),
+            message_filters.Subscriber("NX04/t265/fisheye1/image_raw",
                                        sensor_msgs.Image, queue_size=10),
             # message_filters.Subscriber("/airsim_node/Multirotor/front_center_custom/Scene/camera_info", 
             #                            sensor_msgs.CameraInfo),
