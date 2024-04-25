@@ -431,7 +431,7 @@ class SAM_DA_node:
                 del landmarkMAPmeans[idx]
 
         # Create measurement packet
-        obj_packet = active_slam_msgs.ObjArray()
+        obj_packet = motlee_msgs.ObjArray()
         obj_packet.header = img_msg.header
 
         for idx, components in landmarkMAPmeans.items():
