@@ -216,8 +216,8 @@ class SAM_DA_node:
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
         h, w, c = img.shape
-        print("Width:", w)
-        print("Height:", h)
+        #print("Width:", w)
+        #print("Height:", h)
 
         # Define the size of the crop desired
         crop_width = 500
@@ -236,9 +236,9 @@ class SAM_DA_node:
 
         # Get the shape of the cropped image
         hc, wc, cc = cropped_image.shape
-        print("Cropped Width:", wc)
-        print("Cropped Height:", hc)
-        print("nk: ", nk)
+        #print("Cropped Width:", wc)
+        #print("Cropped Height:", hc)
+        #print("nk: ", nk)
 
         # If needed to use cropped_image in the subsequent part of your program
         img = cropped_image
@@ -292,7 +292,7 @@ class SAM_DA_node:
         self.blob_sam_node.filename = self.blob_sam_node.blobTracker.latestKeyframeIndex
         self.blob_sam_node.blobTracker = self.blobTracker
 
-        print(f"latest keyframe index: {keyframe}")
+        #print(f"latest keyframe index: {keyframe}")
 
         # Process image and get tracks
         tracks = self.blob_sam_node.process_image()
@@ -327,24 +327,26 @@ class SAM_DA_node:
                     backpack_x = (box[0]+box[2])/2
                     backpack_y = (box[1]+box[3])/2
 
+                    print("Backpack found!")
+
         # make an array of track object types and call them all "landmark"
         track_classes = []
         for track in tracks:
             track_classes.append("landmark")
 
-        print("Track Classes: ", track_classes)
+        #print("Track Classes: ", track_classes)
 
         for track in self.blobTracker.tracks:
 
             # print("Track ID: ", track.trackId)
-            print("Counter: ", counter)
+            #print("Counter: ", counter)
 
             frames_where_seen = track.framesWhereSeen
             # num track id is length of frames_where_seen
             num_track_id = len(frames_where_seen)
-            print(f"Track ID: {track.trackId}, Number of times seen: {num_track_id}")
+            #print(f"Track ID: {track.trackId}, Number of times seen: {num_track_id}")
 
-            print("Frames wheres seen: ", frames_where_seen)
+            #print("Frames wheres seen: ", frames_where_seen)
 
             # only run if seen in latest frame:
             if counter not in frames_where_seen:
@@ -364,7 +366,7 @@ class SAM_DA_node:
             if num_track_id == 3 and current_px_coords is not None:
                 # make a segment measurement for each counter in frames where seen
                 for frame in frames_where_seen:
-                    print(f"Adding one of three segment measurements to packet at sequence {frame} for track {track.trackId}")
+                    #print(f"Adding one of three segment measurements to packet at sequence {frame} for track {track.trackId}")
 
                     #print(f"Frame: {frame}")
 
@@ -382,7 +384,7 @@ class SAM_DA_node:
                     packet.segments.append(segmentMeasurement)
 
             if num_track_id > 3 and current_px_coords is not None:
-                print(f"Adding one new segment measurement to packet at sequence {counter} for track {track.trackId}")
+                #print(f"Adding one new segment measurement to packet at sequence {counter} for track {track.trackId}")
 
                 #print(f"Frame: {counter}")
 
@@ -409,7 +411,7 @@ class SAM_DA_node:
 
         #(initialError, finalError) = self.blob_sfm.reconstruct(poseHist, poseNoiseHist, tracks)
         (initialError, finalError) = self.flat_world_reconstructor.reconstruct(poseHist, poseNoiseHist, tracks, k_crop)
-        print(f"Initial error={initialError}, final error={finalError}")
+        #print(f"Initial error={initialError}, final error={finalError}")
 
         # reconstruction_start_time = rospy.Time.now()
         landmarkMAPmeans = self.flat_world_reconstructor.getReconstructionResults()
@@ -418,7 +420,15 @@ class SAM_DA_node:
         # reconstruction_end_time = rospy.Time.now()
         # print(f"Reconstruction took {reconstruction_end_time.secs - reconstruction_start_time.secs} seconds")
 
-        print("landmarkMAPmeans: ", landmarkMAPmeans)
+        #print("landmarkMAPmeans: ", landmarkMAPmeans)
+
+        # number of landmarkmapmeans
+        print(f"Number of landmarks: {len(landmarkMAPmeans)}")
+
+        # delete all but most recent 30 landmarkMAPmeans
+        if len(landmarkMAPmeans) > 35:
+            for idx in list(landmarkMAPmeans.keys())[:-35]:
+                del landmarkMAPmeans[idx]
 
         # Create measurement packet
         obj_packet = active_slam_msgs.ObjArray()
@@ -474,7 +484,7 @@ class SAM_DA_node:
             # Set point coordinates
             p = Point()
             x, y, z = components
-            print(f"Landmark {idx} at x: {x}, y: {y}, z: {z}")
+            #print(f"Landmark {idx} at x: {x}, y: {y}, z: {z}")
 
             marker.pose.position.x = x
             marker.pose.position.y = y
@@ -497,7 +507,7 @@ class SAM_DA_node:
             Obj.height = 0.0
             Obj.ell = 0.0
 
-            print(track_classes[idx-1])
+            #print(track_classes[idx-1])
 
             obj_packet.objects.append(Obj)
 

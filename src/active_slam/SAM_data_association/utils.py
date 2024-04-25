@@ -311,7 +311,7 @@ def compute_3d_position_of_centroid(pixel, pose, camera, K):
 
     if lambda_ < 0:
         # raise ValueError(f"lambda_ {lambda_} < 0 \n pixel: {pixel}")
-        print(f"lambda_ {lambda_} < 0 \n pixel: {pixel}")
+        #print(f"lambda_ {lambda_} < 0 \n pixel: {pixel}")
         return 
     
     if abs(X_w[2]) > 1e-2:

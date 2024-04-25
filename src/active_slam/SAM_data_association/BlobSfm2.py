@@ -91,7 +91,7 @@ class BlobSfm:
                 measurements = gtsam.Point2Vector(gtsam_observations)
                 cameras = gtsam.gtsam.CameraSetCal3DS2(gtsam_cams)
 
-                print("there are ", len(cameras), "cameras and ", len(measurements), "measurements")
+                #print("there are ", len(cameras), "cameras and ", len(measurements), "measurements")
 
                 try:
                     #dlt_estimate = gtsam.triangulatePoint3(cameras, measurements, rank_tol=1e-9, optimize=True, model=cameraMeasurementNoise)
@@ -104,13 +104,13 @@ class BlobSfm:
                     dlt_estimate = triangulate_2D(cameras, measurements, cameraMeasurementNoise, track)
                     #print("dlt estimate: ", dlt_estimate)
 
-                    print("cameras" , cameras)
+                    #print("cameras" , cameras)
 
                     # if dlt_estimate is None:
                     #     try_all_combinations(cameras, measurements, cameraMeasurementNoise, track)
 
                     while dlt_estimate is None:
-                        print("retrying")
+                        #print("retrying")
                         # try different combinations of the cameras and measurements
                         estimates = []
                         for i in range(len(cameras)):
@@ -149,15 +149,15 @@ class BlobSfm:
                         # if magnitude of z component of dlt_estimate is greater than 10, set to None
                         if dlt_estimate is not None and abs(dlt_estimate[2]) > 10:
                             dlt_estimate = None
-                            print("z component too large")
+                            #print("z component too large")
                         break
                         # break
                     
                     if dlt_estimate is None:
-                        print("track", track.getTrackId(), "failed")
+                        #print("track", track.getTrackId(), "failed")
                         continue
                     #dlt_estimate = gtsam.triangulatePoint3(cameras, measurements, rank_tol=1e-5, optimize=True, model=cameraMeasurementNoise)
-                    print(f"dlt estimate for {track.getTrackId()}={dlt_estimate}")
+                    #print(f"dlt estimate for {track.getTrackId()}={dlt_estimate}")
 
                     # Add triangulation result as initial guess
                     initialValues.insert(L(trackId), dlt_estimate)
@@ -235,7 +235,7 @@ def runSfmFromCacheFile(pathToCache, cameraConfig, priorConfig=None):
     tracks = blobTracker.getFeatureTracks()
 
     (initialError, finalError) = blobSfm.reconstruct(poseHist, poseNoiseHist, tracks)
-    print(f"Initial error={initialError}, final error={finalError}")
+    #print(f"Initial error={initialError}, final error={finalError}")
 
     landmarkMAPmeans, landmarkMAPcovs, poseMAPmeans, poseMAPcovs, landmarkSizes = blobSfm.getReconstructionResults()
     return blobTracker, landmarkMAPmeans, landmarkMAPcovs, poseMAPmeans, poseMAPcovs, landmarkSizes, tracks
@@ -243,9 +243,9 @@ def runSfmFromCacheFile(pathToCache, cameraConfig, priorConfig=None):
 def tryDLT(cameras, measurements, cameraMeasurementNoise, track):
     try:
         dlt_estimate = gtsam.triangulatePoint3(cameras, measurements, rank_tol=1e-9, optimize=True, model=cameraMeasurementNoise)
-        print(f"track {track.getTrackId()} succeeded!")
+        #print(f"track {track.getTrackId()} succeeded!")
     except RuntimeError:
-        print(f"Track {track.getTrackId()} failed")
+        #print(f"Track {track.getTrackId()} failed")
         dlt_estimate = None
 
     return dlt_estimate

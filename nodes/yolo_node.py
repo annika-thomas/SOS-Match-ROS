@@ -79,6 +79,7 @@ class Detect2D():
 
         print("callback called")
         #img = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")  # serialize, returns cv::Mat
+        
         _classes, _boxes, _confidences = self.detector.detect(img)
         detections = Detection2DArray()
         detections.header = msg.header

@@ -144,7 +144,7 @@ class BlobTracker:
             kp1, des1 = sift.detectAndCompute(image_bgr, None)
             end_time_new = time.time()
             framesSiftFeatures[imageFrame] = [kp1, des1]
-            print(f"Adding frame {imageFrame} to dictionary of SIFT features in {(end_time_new-start_time_new)*1000:.2f} ms")
+            #print(f"Adding frame {imageFrame} to dictionary of SIFT features in {(end_time_new-start_time_new)*1000:.2f} ms")
 
         if prevImageFrame in reversed(framesSiftFeatures):
             kp2, des2 = framesSiftFeatures[prevImageFrame]
@@ -184,7 +184,7 @@ class BlobTracker:
 
         sift_match_end_time = time.time()
 
-        print(f"SIFT matching took {(sift_match_end_time-sift_match_start_time)*1000:.2f} ms")
+        #print(f"SIFT matching took {(sift_match_end_time-sift_match_start_time)*1000:.2f} ms")
 
         F_matrix_start_time = time.time()
 
@@ -234,7 +234,7 @@ class BlobTracker:
         self.keyframeImages[self.latestKeyframeIndex] = image
         self.frameNamesHistory[self.latestKeyframeIndex] = frameName
 
-        self.log(f"Running algorithm with frame idx {self.latestKeyframeIndex}, total travel={self.totalTravel}")
+        #self.log(f"Running algorithm with frame idx {self.latestKeyframeIndex}, total travel={self.totalTravel}")
 
         ddc_start_time = time.time()
 
@@ -242,13 +242,13 @@ class BlobTracker:
 
         ddc_end_time = time.time()
 
-        self.log(f"Feature detection and description took {(ddc_end_time-ddc_start_time)*1000:.2f} ms")
+        #self.log(f"Feature detection and description took {(ddc_end_time-ddc_start_time)*1000:.2f} ms")
 
         self.detectionHistory[self.latestKeyframeIndex] = keypoints
         self.descriptorHistory[self.latestKeyframeIndex] = descriptors
         self.detectionSizeHistory[self.latestKeyframeIndex] = sizes
 
-        self.log(f"At frame {self.latestKeyframeIndex}: Number of segments found: {len(keypoints)}")
+        #self.log(f"At frame {self.latestKeyframeIndex}: Number of segments found: {len(keypoints)}")
 
         self.travelAtLatestKeyframe = self.totalTravel
 
@@ -259,7 +259,7 @@ class BlobTracker:
 
         findCorrespondences_end_time = time.time()
 
-        self.log(f"Finding correspondences took {(findCorrespondences_end_time-findCorrespondences_start_time)*1000:.2f} ms")
+        #self.log(f"Finding correspondences took {(findCorrespondences_end_time-findCorrespondences_start_time)*1000:.2f} ms")
 
         self.T_prev = T
 
@@ -284,7 +284,7 @@ class BlobTracker:
 
         gettingLatestFrameWhereDetected_end_time = time.time()
 
-        self.log(f"Getting latest frame where detected took {(gettingLatestFrameWhereDetected_end_time-gettingLatestFrameWhereDetected_start_time)*1000:.2f} ms")
+        #self.log(f"Getting latest frame where detected took {(gettingLatestFrameWhereDetected_end_time-gettingLatestFrameWhereDetected_start_time)*1000:.2f} ms")
 
         # Go through every association of currently observed points and tracks we consider for matching.
         framesWithObservations = np.unique(lastObservationsForTracks)
@@ -298,7 +298,7 @@ class BlobTracker:
 
         siftFundTime = 0
         numFramesWithObservations = len(framesWithObservations)
-        print(f"Number of frames with observations: {numFramesWithObservations}")
+        #print(f"Number of frames with observations: {numFramesWithObservations}")
 
         for frame_id in framesWithObservations:
             previousImage_bgr = cv2.cvtColor(self.keyframeImages[frame_id], cv2.COLOR_RGB2BGR)
@@ -316,7 +316,7 @@ class BlobTracker:
 
             siftFundEnd = time.time()
 
-            print(f"Finding fundamental matrix of {frame_id} took {(siftFundEnd-siftFundStart)*1000:.2f} ms")
+            #print(f"Finding fundamental matrix of {frame_id} took {(siftFundEnd-siftFundStart)*1000:.2f} ms")
 
             siftFundTime += siftFundEnd-siftFundStart
 
@@ -394,7 +394,7 @@ class BlobTracker:
                         #else:
                         #    self.log(f"At frame {frame_id}, for point at pixel coordinates {newKeypoint}, track {track.getTrackId()} was considered infeasible (f_test_val={f_test_val:.3f}=")
 
-        self.log(f"Finding fund matrix took {siftFundTime*1000:.2f} ms")
+        #self.log(f"Finding fund matrix took {siftFundTime*1000:.2f} ms")
 
         if (similarityMatrix is not None):
             h_simMat, w_simMat = similarityMatrix.shape
