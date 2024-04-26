@@ -62,6 +62,7 @@ class SAM_DA_node:
         self.bridge = cv_bridge.CvBridge()
         self.counter = 0
         # TODO: make rosparam
+        # TODO: change camera parameters for NX02
         #self.K = rospy.get_param('~K', [320.0, 0.0, 320.0, 0.0, 320.0, 240.0, 0.0, 0.0, 1.0]) - for airsim
         #self.K = rospy.get_param('~K' [718.856, 0.0, 607.1928, 0.0, 718.856, 185.2157, 0.0, 0.0, 1.0]) # for KITTI
         #self.K = rospy.get_param('~K', [286.3395, 0.0, 420.897, 0.0, 286.24, 404.23, 0, 0, 1.0]) # for highbay my bag
@@ -97,8 +98,8 @@ class SAM_DA_node:
         # for highbay
         subs = [
             #message_filters.Subscriber("NX04/odometry", nav_msgs.Odometry, queue_size=100),
-            message_filters.Subscriber("NX04/world", geometry_msgs.PoseStamped, queue_size=10),
-            message_filters.Subscriber("NX04/t265/fisheye1/image_raw",
+            message_filters.Subscriber("NX02/world", geometry_msgs.PoseStamped, queue_size=10),
+            message_filters.Subscriber("NX02/t265/fisheye1/image_raw",
                                        sensor_msgs.Image, queue_size=10),
             # message_filters.Subscriber("/airsim_node/Multirotor/front_center_custom/Scene/camera_info", 
             #                            sensor_msgs.CameraInfo),
@@ -159,6 +160,7 @@ class SAM_DA_node:
         self.last_image = None
         self.last_pose = None
         self.noise_amount = 0.1
+        self.backpack_found_idx = None
 
     # Callback for first goal reached
     def first_goal_reached_cb(self, msg):
@@ -334,6 +336,9 @@ class SAM_DA_node:
         for track in tracks:
             track_classes.append("landmark")
 
+        if self.backpack_found_idx is not None:
+            track_classes[self.backpack_found_idx] = "backpack"
+
         #print("Track Classes: ", track_classes)
 
         for track in self.blobTracker.tracks:
@@ -361,6 +366,7 @@ class SAM_DA_node:
                 dist = np.linalg.norm(np.array([backpack_x, backpack_y]) - np.array([current_px_coords[0], current_px_coords[1]]))
                 if dist < 0.2:
                     track_classes[track.trackId] = "backpack"
+                    self.backpack_found_idx = track.trackId
 
             # If the track has been seen in 3 frames and pixel coordinates is not none, add all three to the measurement packet
             if num_track_id == 3 and current_px_coords is not None:
@@ -442,7 +448,7 @@ class SAM_DA_node:
                 x1, y1, z1 = components
                 x2, y2, z2 = components2
                 dist = np.linalg.norm(np.array([x1, y1, z1]) - np.array([x2, y2, z2]))
-                if dist < 0.2:
+                if dist < 0.3:
                     landmarkMAPmeans[idx] = (x1 + x2) / 2, (y1 + y2) / 2, (z1 + z2) / 2
                     landmarkMAPmeans[idx2] = (x1 + x2) / 2, (y1 + y2) / 2, (z1 + z2) / 2
                     #del landmarkMAPmeans[idx2]
