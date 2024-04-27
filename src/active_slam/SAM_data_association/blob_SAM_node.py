@@ -1,6 +1,6 @@
 # Written by Annika Thomas
 
-from active_slam.SAM_data_association.utils import visualizeMAP
+#from active_slam.SAM_data_association.utils import visualizeMAP
 # for outdoor: 
 from active_slam.SAM_data_association.readAirsimData import getAllData 
 # for highbay: from readHighbayData import getAllData
