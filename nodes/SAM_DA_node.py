@@ -99,8 +99,10 @@ class SAM_DA_node:
         subs = [
             #message_filters.Subscriber("NX04/odometry", nav_msgs.Odometry, queue_size=100),
             message_filters.Subscriber("NX02/world", geometry_msgs.PoseStamped, queue_size=10),
-            message_filters.Subscriber("NX02/t265/fisheye1/image_raw",
-                                       sensor_msgs.Image, queue_size=10),
+            # message_filters.Subscriber("NX02/t265/fisheye1/image_raw",
+            #                            sensor_msgs.Image, queue_size=10),
+            message_filters.Subscriber("NX02/t265/fisheye1/image_raw/compressed",
+                                       sensor_msgs.CompressedImage, queue_size=10),
             # message_filters.Subscriber("/airsim_node/Multirotor/front_center_custom/Scene/camera_info", 
             #                            sensor_msgs.CameraInfo),
         ]
@@ -181,11 +183,18 @@ class SAM_DA_node:
 
         counter = self.counter
 
-        # conversion from ros msg to cv img
-        img = self.bridge.imgmsg_to_cv2(img_msg, desired_encoding='bgr8')
+        np_arr = np.fromstring(img_msg.data, np.uint8)
+        # compressed image to cv image
+        img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
         # convert image to np.uint8
         img_undist = np.array(img, dtype=np.uint8)
+
+        # # conversion from ros msg to cv img
+        # img = self.bridge.imgmsg_to_cv2(img_msg, desired_encoding='bgr8')
+
+        # # convert image to np.uint8
+        # img_undist = np.array(img, dtype=np.uint8)
 
         # undistort image
         h, w = img_undist.shape[:2]
@@ -431,6 +440,8 @@ class SAM_DA_node:
         # number of landmarkmapmeans
         print(f"Number of landmarks: {len(landmarkMAPmeans)}")
 
+        doubles_indices = []
+
         # delete all but most recent 30 landmarkMAPmeans
         if len(landmarkMAPmeans) > 35:
             for idx in list(landmarkMAPmeans.keys())[:-35]:
@@ -441,20 +452,29 @@ class SAM_DA_node:
         obj_packet.header = img_msg.header
 
         for idx, components in landmarkMAPmeans.items():
-            # fuse landmarks that are less than 0.2 meters apart
+            # fuse landmarks that are less than 0.3 meters apart
             for idx2, components2 in landmarkMAPmeans.items():
                 if idx == idx2:
                     continue
                 x1, y1, z1 = components
                 x2, y2, z2 = components2
                 dist = np.linalg.norm(np.array([x1, y1, z1]) - np.array([x2, y2, z2]))
+                #print(f"Distance between {idx} and {idx2}: {dist}")
                 if dist < 0.3:
                     landmarkMAPmeans[idx] = (x1 + x2) / 2, (y1 + y2) / 2, (z1 + z2) / 2
                     landmarkMAPmeans[idx2] = (x1 + x2) / 2, (y1 + y2) / 2, (z1 + z2) / 2
                     #del landmarkMAPmeans[idx2]
+                    doubles_indices.append(idx2)
                     break
 
         for idx, components in landmarkMAPmeans.items():
+            if idx in doubles_indices:
+                continue
+
+            # if x or y component is larger than 5.3, continue
+            if components[0] > 5.3 or components[1] > 5.3:
+                continue
+
             marker = Marker()
             marker.header = img_msg.header
             marker.header.frame_id = odom_msg.header.frame_id

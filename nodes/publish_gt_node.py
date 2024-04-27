@@ -5,6 +5,36 @@ import motlee_msgs.msg as motlee_msgs
 import geometry_msgs.msg as geometry_msgs
 import active_slam.config
 import numpy as np
+from visualization_msgs.msg import Marker
+
+def make_marker(x, y, z, id):
+
+    marker = Marker()
+    #marker.header.frame_id = odom_msg.header.frame_id
+    marker.id = id
+    marker.type = Marker.SPHERE
+    marker.action = Marker.ADD
+    # marker.pose.orientation.x = objmsg.pose.orientation.x
+    # marker.pose.orientation.y = objmsg.pose.orientation.y
+    # marker.pose.orientation.z = objmsg.pose.orientation.z
+    # marker.pose.orientation.w = objmsg.pose.orientation.w
+    marker.pose.position.x = x
+    marker.pose.position.y = y
+    marker.pose.position.z = z
+    marker.scale.x = 0.2  # Point size
+    marker.scale.y = 0.2
+    marker.scale.z = 0.2
+    marker.color.a = 1.0  # Alpha (transparency)
+    marker.color.r = 1.0  # Color (red)
+    marker.color.g = 0.0
+    marker.color.b = 0.0
+    marker.header.frame_id = "world"
+
+
+    print(f"Object at: {x}, {y}, {z}")
+
+    # Publish the marker
+    return marker
 
 def publish_locations():
     # Initialize ROS node
@@ -12,6 +42,7 @@ def publish_locations():
 
     # Create publisher for object locations
     pub = rospy.Publisher('/gt/map', motlee_msgs.ObjArray, queue_size=5)
+    marker_pub = rospy.Publisher('/gt/marker', Marker, queue_size=5)
 
     # for objects in active_slam.config.gt_object_locations.yml, defined object locations as Obj
     obj_packet = motlee_msgs.ObjArray()
@@ -23,6 +54,8 @@ def publish_locations():
     z = 0.022653042195593026
     Obj.position = geometry_msgs.Point(x=x, y=y, z=z)
     obj_packet.objects.append(Obj)
+    marker1 = make_marker(x, y, z, 1)
+
 
     Obj = motlee_msgs.Obj()
     Obj.id = 2
@@ -31,6 +64,7 @@ def publish_locations():
     z = 0.01514832538635279
     Obj.position = geometry_msgs.Point(x=x, y=y, z=z)
     obj_packet.objects.append(Obj)
+    marker2 = make_marker(x, y, z, 2)
 
     Obj = motlee_msgs.Obj()
     Obj.id = 3
@@ -39,6 +73,7 @@ def publish_locations():
     z = 0.15660143444872096
     Obj.position = geometry_msgs.Point(x=x, y=y, z=z)
     obj_packet.objects.append(Obj)
+    marker3 = make_marker(x, y, z, 3)
 
     Obj = motlee_msgs.Obj()
     Obj.id = 4
@@ -47,6 +82,7 @@ def publish_locations():
     z = 0.008872907636122791
     Obj.position = geometry_msgs.Point(x=x, y=y, z=z)
     obj_packet.objects.append(Obj)
+    marker4 = make_marker(x, y, z, 4)
 
     Obj = motlee_msgs.Obj()
     Obj.id = 5
@@ -55,6 +91,7 @@ def publish_locations():
     z = 0.15680046102339143
     Obj.position = geometry_msgs.Point(x=x, y=y, z=z)
     obj_packet.objects.append(Obj)
+    marker5 = make_marker(x, y, z, 5)
 
     Obj = motlee_msgs.Obj()
     Obj.id = 6
@@ -63,6 +100,7 @@ def publish_locations():
     z = 0.0024622021276530653
     Obj.position = geometry_msgs.Point(x=x, y=y, z=z)
     obj_packet.objects.append(Obj)
+    marker6 = make_marker(x, y, z, 6)
 
     Obj = motlee_msgs.Obj()
     Obj.id = 7
@@ -71,6 +109,7 @@ def publish_locations():
     z = 0.21638098651564336
     Obj.position = geometry_msgs.Point(x=x, y=y, z=z)
     obj_packet.objects.append(Obj)
+    marker7 = make_marker(x, y, z, 7)
 
     Obj = motlee_msgs.Obj()
     Obj.id = 8
@@ -79,6 +118,7 @@ def publish_locations():
     z = 0.029281356249412333
     Obj.position = geometry_msgs.Point(x=x, y=y, z=z)
     obj_packet.objects.append(Obj)
+    marker8 = make_marker(x, y, z, 8)
 
     Obj = motlee_msgs.Obj()
     Obj.id = 9
@@ -87,6 +127,7 @@ def publish_locations():
     z = 0.578767558921031
     Obj.position = geometry_msgs.Point(x=x, y=y, z=z)
     obj_packet.objects.append(Obj)
+    marker9 = make_marker(x, y, z, 9)
 
     Obj = motlee_msgs.Obj()
     Obj.id = 10
@@ -95,6 +136,7 @@ def publish_locations():
     z = -0.002022159192989402
     Obj.position = geometry_msgs.Point(x=x, y=y, z=z)
     obj_packet.objects.append(Obj)
+    marker10 = make_marker(x, y, z, 10)
 
     Obj = motlee_msgs.Obj()
     Obj.id = 11
@@ -103,6 +145,7 @@ def publish_locations():
     z = 0.00019280324594694523
     Obj.position = geometry_msgs.Point(x=x, y=y, z=z)
     obj_packet.objects.append(Obj)
+    marker11 = make_marker(x, y, z, 11)
 
     Obj = motlee_msgs.Obj()
     Obj.id = 12
@@ -111,6 +154,7 @@ def publish_locations():
     z = 0.009594702260654226
     Obj.position = geometry_msgs.Point(x=x, y=y, z=z)
     obj_packet.objects.append(Obj)
+    marker12 = make_marker(x, y, z, 12)
 
     Obj = motlee_msgs.Obj()
     Obj.id = 13
@@ -119,6 +163,7 @@ def publish_locations():
     z = 0.012107018260123408
     Obj.position = geometry_msgs.Point(x=x, y=y, z=z)
     obj_packet.objects.append(Obj)
+    marker13 = make_marker(x, y, z, 13)
 
     Obj = motlee_msgs.Obj()
     Obj.id = 14
@@ -127,6 +172,7 @@ def publish_locations():
     z = 0.13346038488638134
     Obj.position = geometry_msgs.Point(x=x, y=y, z=z)
     obj_packet.objects.append(Obj)
+    marker14 = make_marker(x, y, z, 14)
 
     Obj = motlee_msgs.Obj()
     Obj.id = 15
@@ -135,6 +181,7 @@ def publish_locations():
     z = 0.14511361803218523
     Obj.position = geometry_msgs.Point(x=x, y=y, z=z)
     obj_packet.objects.append(Obj)
+    marker15 = make_marker(x, y, z, 15)
 
     Obj = motlee_msgs.Obj()
     Obj.id = 16
@@ -143,6 +190,7 @@ def publish_locations():
     z = 0.22189755152361168
     Obj.position = geometry_msgs.Point(x=x, y=y, z=z)
     obj_packet.objects.append(Obj)
+    marker16 = make_marker(x, y, z, 16)
 
     Obj = motlee_msgs.Obj()
     Obj.id = 17
@@ -151,6 +199,7 @@ def publish_locations():
     z = 0.032387993403271996
     Obj.position = geometry_msgs.Point(x=x, y=y, z=z)
     obj_packet.objects.append(Obj)
+    marker17 = make_marker(x, y, z, 17)
 
     Obj = motlee_msgs.Obj()
     Obj.id = 18
@@ -159,6 +208,7 @@ def publish_locations():
     z = 0.27943232630008463
     Obj.position = geometry_msgs.Point(x=x, y=y, z=z)
     obj_packet.objects.append(Obj)
+    marker18 = make_marker(x, y, z, 18)
 
     Obj = motlee_msgs.Obj()
     Obj.id = 19
@@ -167,6 +217,7 @@ def publish_locations():
     z = 0.020597632549389105
     Obj.position = geometry_msgs.Point(x=x, y=y, z=z)
     obj_packet.objects.append(Obj)
+    marker19 = make_marker(x, y, z, 19)
 
     Obj = motlee_msgs.Obj()
     Obj.id = 20
@@ -175,6 +226,7 @@ def publish_locations():
     z = 0.136030770193257
     Obj.position = geometry_msgs.Point(x=x, y=y, z=z)
     obj_packet.objects.append(Obj)
+    marker20 = make_marker(x, y, z, 20)
 
     Obj = motlee_msgs.Obj()
     Obj.id = 21
@@ -183,11 +235,33 @@ def publish_locations():
     z = 0.007486509451279852
     Obj.position = geometry_msgs.Point(x=x, y=y, z=z)
     obj_packet.objects.append(Obj)
+    marker21 = make_marker(x, y, z, 21)
 
     # Publish object locations continuously
     rate = rospy.Rate(1)  # 1 Hz
     while not rospy.is_shutdown():
         pub.publish(obj_packet)
+        marker_pub.publish(marker1)
+        marker_pub.publish(marker2)
+        marker_pub.publish(marker3)
+        marker_pub.publish(marker4)
+        marker_pub.publish(marker5)
+        marker_pub.publish(marker6)
+        marker_pub.publish(marker7)
+        marker_pub.publish(marker8)
+        marker_pub.publish(marker9)
+        marker_pub.publish(marker10)
+        marker_pub.publish(marker11)
+        marker_pub.publish(marker12)
+        marker_pub.publish(marker13)
+        marker_pub.publish(marker14)
+        marker_pub.publish(marker15)
+        marker_pub.publish(marker16)
+        marker_pub.publish(marker17)
+        marker_pub.publish(marker18)
+        marker_pub.publish(marker19)
+        marker_pub.publish(marker20)
+        marker_pub.publish(marker21)
         rate.sleep()
 
 if __name__ == '__main__':
