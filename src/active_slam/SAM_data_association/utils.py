@@ -5,7 +5,7 @@ import time
 import os
 import logging
 import sys
-from active_slam.SAM_data_association.Open3dVisualizer import Open3dVisualizer
+#from active_slam.SAM_data_association.Open3dVisualizer import Open3dVisualizer
 from scipy.spatial.transform import Rotation as Rot
 
 def readConfig(pathToConfigFile):
@@ -225,23 +225,23 @@ def covSize(cov, squareRoot=True):
         return maxEigenvalue
 
 
-def visualizeMAP(landmarkMeansDict, landmarkCovsDict, posesDict, poseCovsDict):
-    vis3d = Open3dVisualizer()
+# def visualizeMAP(landmarkMeansDict, landmarkCovsDict, posesDict, poseCovsDict):
+#     vis3d = Open3dVisualizer()
 
-    for key in landmarkMeansDict:
-        lm_position = landmarkMeansDict[key]
-        lm_cov = landmarkCovsDict[key]
+#     for key in landmarkMeansDict:
+#         lm_position = landmarkMeansDict[key]
+#         lm_cov = landmarkCovsDict[key]
 
-        vis3d.addPoint(lm_position, lm_cov, f"L{key}", [1.0,0.0,0.0])
+#         vis3d.addPoint(lm_position, lm_cov, f"L{key}", [1.0,0.0,0.0])
     
-    for key in posesDict:
-        T = posesDict[key]
-        #T_cov = poseCovsDict[key]
-        T_cov = None
+#     for key in posesDict:
+#         T = posesDict[key]
+#         #T_cov = poseCovsDict[key]
+#         T_cov = None
 
-        vis3d.addPose(T, T_cov, f"X{key}")
+#         vis3d.addPose(T, T_cov, f"X{key}")
     
-    vis3d.render()
+#     vis3d.render()
 
 def rotate_3d_points_around_z(points, angle_deg):
     # Convert angle to radians
