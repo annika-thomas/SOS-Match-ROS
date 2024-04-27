@@ -11,7 +11,8 @@ class SamFeatDdc(FeatureDetectorDescriptorAndComparer):
     def __init__(self, samModel: SamModel, maxSizeDiff, method="feat"):
         self.samModel = samModel
         self.method = method
-        self.sift = cv2.SIFT.create()
+        #self.sift = cv2.SIFT.create()
+        self.sift = cv2.xfeatures2d.SIFT_create()
         self.maxSizeDiff = maxSizeDiff
 
         # FLANN parameters
