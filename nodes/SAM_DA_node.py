@@ -99,10 +99,10 @@ class SAM_DA_node:
         subs = [
             #message_filters.Subscriber("NX04/odometry", nav_msgs.Odometry, queue_size=100),
             message_filters.Subscriber("NX02/world", geometry_msgs.PoseStamped, queue_size=10),
-            # message_filters.Subscriber("NX02/t265/fisheye1/image_raw",
-            #                            sensor_msgs.Image, queue_size=10),
-            message_filters.Subscriber("NX02/t265/fisheye1/image_raw/compressed",
-                                       sensor_msgs.CompressedImage, queue_size=10),
+            message_filters.Subscriber("NX02/t265/fisheye1/image_raw",
+                                       sensor_msgs.Image, queue_size=10),
+            # message_filters.Subscriber("NX02/t265/fisheye1/image_raw/compressed",
+            #                            sensor_msgs.CompressedImage, queue_size=10),
             # message_filters.Subscriber("/airsim_node/Multirotor/front_center_custom/Scene/camera_info", 
             #                            sensor_msgs.CameraInfo),
         ]
@@ -183,18 +183,18 @@ class SAM_DA_node:
 
         counter = self.counter
 
-        np_arr = np.fromstring(img_msg.data, np.uint8)
-        # compressed image to cv image
-        img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-
-        # convert image to np.uint8
-        img_undist = np.array(img, dtype=np.uint8)
-
-        # # conversion from ros msg to cv img
-        # img = self.bridge.imgmsg_to_cv2(img_msg, desired_encoding='bgr8')
+        # np_arr = np.fromstring(img_msg.data, np.uint8)
+        # # compressed image to cv image
+        # img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
         # # convert image to np.uint8
         # img_undist = np.array(img, dtype=np.uint8)
+
+        # conversion from ros msg to cv img
+        img = self.bridge.imgmsg_to_cv2(img_msg, desired_encoding='bgr8')
+
+        # convert image to np.uint8
+        img_undist = np.array(img, dtype=np.uint8)
 
         # undistort image
         h, w = img_undist.shape[:2]
