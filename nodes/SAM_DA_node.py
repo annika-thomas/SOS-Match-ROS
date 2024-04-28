@@ -178,8 +178,8 @@ class SAM_DA_node:
         """
         odom_msg, img_msg, = msgs #cam_info_msg = msgs
 
-        # if odom_msg.pose.position.z < 1.2:
-        #     return
+        if odom_msg.pose.position.z < 1.2:
+            return
 
         counter = self.counter
 
