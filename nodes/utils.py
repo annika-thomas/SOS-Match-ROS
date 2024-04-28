@@ -102,7 +102,7 @@ def compute_3d_position_of_centroid(pixel, pose, camera, K):
     t_c_w = T_c_w[:3, 3]
 
     # rotate R 180 degrees around z axis
-    R_c_w = np.matmul(Rot.from_euler('z', 180, degrees=True).as_matrix(), R_c_w)
+    #R_c_w = np.matmul(Rot.from_euler('z', 180, degrees=True).as_matrix(), R_c_w)
 
     # Get X_o from pose (or you can get it by - np.linalg.inv(R_c_w) @ t_c_w)
     # X_o = np.array(pose[0:3]) + camera_translation # which is the same as - np.linalg.inv(R_c_w) @ t_c_w
