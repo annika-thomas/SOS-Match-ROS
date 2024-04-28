@@ -65,12 +65,12 @@ class SAM_DA_node:
         # TODO: change camera parameters for NX02
         #self.K = rospy.get_param('~K', [320.0, 0.0, 320.0, 0.0, 320.0, 240.0, 0.0, 0.0, 1.0]) - for airsim
         #self.K = rospy.get_param('~K' [718.856, 0.0, 607.1928, 0.0, 718.856, 185.2157, 0.0, 0.0, 1.0]) # for KITTI
-        #self.K = rospy.get_param('~K', [286.3395, 0.0, 420.897, 0.0, 286.24, 404.23, 0, 0, 1.0]) # for highbay my bag
-        self.K = rospy.get_param('~K', [284.864, 0, 419.02, 0, 285.92, 409.17, 0, 0, 1]) #for puma bag
+        self.K = rospy.get_param('~K', [286.3395, 0.0, 420.897, 0.0, 286.24, 404.23, 0, 0, 1.0]) # for highbay my bag
+        #self.K = rospy.get_param('~K', [284.864, 0, 419.02, 0, 285.92, 409.17, 0, 0, 1]) #for puma bag
         #self.K = rospy.get_param('~K', [284.5398, 0, 422.2144, 0, 285.4696, 388.6827, 0, 0, 1])
         #self.distortion_params = rospy.get_param('~distortion_params', [0.0, 0.0, 0.0, 0.0])
-        #self.distortion_params = rospy.get_param('~distortion_params', [-0.011009, 0.046768, 0.044220, 0.0008363]) # for highbay my bag
-        self.distortion_params = rospy.get_param('~distortion.params', [-0.005343, 0.039268, -0.037734, 0.006587]) # puma bag
+        self.distortion_params = rospy.get_param('~distortion_params', [-0.011009, 0.046768, 0.044220, 0.0008363]) # for highbay my bag
+        #self.distortion_params = rospy.get_param('~distortion.params', [-0.005343, 0.039268, -0.037734, 0.006587]) # puma bag
         #self.distortion_params = rospy.get_param('~distortion_params', [-0.004301, 0.039112, -0.037137, 0.006241])
         fx = self.K[0]
         fy = self.K[4]
@@ -99,10 +99,10 @@ class SAM_DA_node:
         subs = [
             #message_filters.Subscriber("NX04/odometry", nav_msgs.Odometry, queue_size=100),
             message_filters.Subscriber("NX02/world", geometry_msgs.PoseStamped, queue_size=10),
-            message_filters.Subscriber("NX02/t265/fisheye1/image_raw",
-                                       sensor_msgs.Image, queue_size=10),
-            # message_filters.Subscriber("NX02/t265/fisheye1/image_raw/compressed",
-            #                            sensor_msgs.CompressedImage, queue_size=10),
+            # message_filters.Subscriber("NX02/t265/fisheye1/image_raw",
+            #                            sensor_msgs.Image, queue_size=10),
+            message_filters.Subscriber("NX02/t265/fisheye1/image_raw/compressed",
+                                       sensor_msgs.CompressedImage, queue_size=10),
             # message_filters.Subscriber("/airsim_node/Multirotor/front_center_custom/Scene/camera_info", 
             #                            sensor_msgs.CameraInfo),
         ]
@@ -146,7 +146,7 @@ class SAM_DA_node:
         #self.first_goal_reached_sub = rospy.Subscriber("/first_goal_reached", std_msgs.Bool, self.first_goal_reached_cb)
 
         # Approximate Time Synchronizer
-        self.ts = message_filters.ApproximateTimeSynchronizer(subs, queue_size=10, slop=1, allow_headerless=True)
+        self.ts = message_filters.ApproximateTimeSynchronizer(subs, queue_size=10, slop=0.01, allow_headerless=True)
         self.ts.registerCallback(self.cb) # registers incoming messages to callback
 
         # ros publishers
@@ -183,18 +183,18 @@ class SAM_DA_node:
 
         counter = self.counter
 
-        # np_arr = np.fromstring(img_msg.data, np.uint8)
-        # # compressed image to cv image
-        # img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-
-        # # convert image to np.uint8
-        # img_undist = np.array(img, dtype=np.uint8)
-
-        # conversion from ros msg to cv img
-        img = self.bridge.imgmsg_to_cv2(img_msg, desired_encoding='bgr8')
+        np_arr = np.fromstring(img_msg.data, np.uint8)
+        # compressed image to cv image
+        img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
         # convert image to np.uint8
         img_undist = np.array(img, dtype=np.uint8)
+
+        # # conversion from ros msg to cv img
+        # img = self.bridge.imgmsg_to_cv2(img_msg, desired_encoding='bgr8')
+
+        # # convert image to np.uint8
+        # img_undist = np.array(img, dtype=np.uint8)
 
         # undistort image
         h, w = img_undist.shape[:2]
@@ -202,22 +202,39 @@ class SAM_DA_node:
         balance = 1.0
         img_dim_out = (int(w*scale_factor), int(h*scale_factor))
 
+        # K = np.array([
+        #     [284.864, 0, 419.02],
+        #     [0.0, 285.92, 409.17],
+        #     [0, 0, 1]
+        # ])
+
+        # D = np.array([
+        #     [-0.005343],
+        #     [0.039268],
+        #     [-0.037734],
+        #     [0.006587]
+        # ])
+
         K = np.array([
-            [284.864, 0, 419.02],
-            [0.0, 285.92, 409.17],
+            [286.3395, 0.0, 420.897],
+            [0.0, 286.24, 404.23],
             [0, 0, 1]
         ])
 
         D = np.array([
-            [-0.005343],
-            [0.039268],
-            [-0.037734],
-            [0.006587]
+            [-0.011009],
+            [0.046768],
+            [0.044220],
+            [0.0008363]
         ])
 
+        D = D*0.001
+
         nk = K.copy()
-        nk[0,0]=K[0,0]*0.55
-        nk[1,1]=K[1,1]*0.55
+        # nk[0,0]=K[0,0]*0.55
+        # nk[1,1]=K[1,1]*0.55
+        nk[0,0]=K[0,0]*0.7
+        nk[1,1]=K[1,1]*0.7
 
         map1, map2 = cv2.fisheye.initUndistortRectifyMap(K, D, np.eye(3), nk, img_dim_out, cv2.CV_32FC1)
         undistorted_img = cv2.remap(img_undist, map1, map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
@@ -230,7 +247,7 @@ class SAM_DA_node:
         #print("Width:", w)
         #print("Height:", h)
 
-        # Define the size of the crop desired
+        #Define the size of the crop desired
         crop_width = 500
         crop_height = 500
 
@@ -247,11 +264,11 @@ class SAM_DA_node:
 
         # Get the shape of the cropped image
         hc, wc, cc = cropped_image.shape
-        #print("Cropped Width:", wc)
-        #print("Cropped Height:", hc)
-        #print("nk: ", nk)
+        print("Cropped Width:", wc)
+        print("Cropped Height:", hc)
+        print("nk: ", nk)
 
-        # If needed to use cropped_image in the subsequent part of your program
+        #If needed to use cropped_image in the subsequent part of your program
         img = cropped_image
 
         undist_img_msg = self.bridge.cv2_to_imgmsg(img, encoding="bgr8")
@@ -262,6 +279,7 @@ class SAM_DA_node:
         cropped_v = 250
 
         k_crop = np.array([[nk[0,0], 0, cropped_u], [0, nk[1,1], cropped_v], [0, 0, 1]])
+        #k_crop = nk
 
         R = Rot.from_quat([odom_msg.pose.orientation.x, odom_msg.pose.orientation.y, odom_msg.pose.orientation.z, odom_msg.pose.orientation.w]).as_matrix()
 
