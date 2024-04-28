@@ -264,9 +264,9 @@ class SAM_DA_node:
 
         # Get the shape of the cropped image
         hc, wc, cc = cropped_image.shape
-        print("Cropped Width:", wc)
-        print("Cropped Height:", hc)
-        print("nk: ", nk)
+        #print("Cropped Width:", wc)
+        #rint("Cropped Height:", hc)
+        #print("nk: ", nk)
 
         #If needed to use cropped_image in the subsequent part of your program
         img = cropped_image
@@ -394,6 +394,7 @@ class SAM_DA_node:
                 if dist < 0.2:
                     track_classes[track.trackId] = "backpack"
                     self.backpack_found_idx = track.trackId
+                    print("Backpack found!")
 
             # If the track has been seen in 3 frames and pixel coordinates is not none, add all three to the measurement packet
             if num_track_id == 3 and current_px_coords is not None:
