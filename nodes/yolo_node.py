@@ -25,10 +25,10 @@ class Detect2D():
         self.node_name = rospy.get_name()
         self.bridge = cv_bridge.CvBridge()
         self.detector = yolo.Yolov7Detector()
-        self.detector.conf_thres = 0.75
+        self.detector.conf_thres = 0.15
 
         # set up sub and pub
-        self.img_sub = rospy.Subscriber("RR04/t265/fisheye1/image_raw/compressed", sensor_msgs.CompressedImage, self.img_proc_cb, queue_size=10)
+        self.img_sub = rospy.Subscriber("NX02/t265/fisheye1/image_raw/compressed", sensor_msgs.CompressedImage, self.img_proc_cb, queue_size=10)
 
         self.img_pub = rospy.Publisher("image_with_bbox", Image, queue_size=1)
         self.detections_pub = rospy.Publisher("detection2Ds", Detection2DArray, queue_size=1)
@@ -51,28 +51,65 @@ class Detect2D():
         img_dim_out = (int(w*scale_factor), int(h*scale_factor))
 
         K = np.array([
-            [285.726501, 0.000000, 425.540405],
-            [0.000000, 285.773010, 400.354095],
-            [0.000000, 0.000000, 1.000000]])
-        
-
-        # self.K = [285.726501, 0.000000, 425.540405, 0.000000, 285.773010, 400.354095, 0.000000, 0.000000, 1.000000] #RR04
-        # self.distortion_params = [-0.006606, 0.042409, -0.040681, 0.007675] #RR04
-
-        D = np.array([
-            [-0.006606], 
-            [0.042409], 
-            [-0.040681], 
-            [0.007675]
+            [286.3395, 0.0, 420.897],
+            [0.0, 286.24, 404.23],
+            [0, 0, 1]
         ])
 
+        D = np.array([
+            [-0.011009],
+            [0.046768],
+            [0.044220],
+            [0.0008363]
+        ])
+
+        D = D*0.001
+
         nk = K.copy()
-        nk[0,0]=K[0,0]/2
-        nk[1,1]=K[1,1]/2
+        # nk[0,0]=K[0,0]*0.55
+        # nk[1,1]=K[1,1]*0.55
+        nk[0,0]=K[0,0]*0.7
+        nk[1,1]=K[1,1]*0.7
 
         map1, map2 = cv2.fisheye.initUndistortRectifyMap(K, D, np.eye(3), nk, img_dim_out, cv2.CV_32FC1)
         undistorted_img = cv2.remap(img_undist, map1, map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
         img = undistorted_img
+
+        # Convert img to RGB color space from BGR
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+        h, w, c = img.shape
+        #print("Width:", w)
+        #print("Height:", h)
+
+        #Define the size of the crop desired
+        crop_width = 500
+        crop_height = 500
+
+        # Ensure the crop size is not larger than the image size
+        crop_width = min(crop_width, w)
+        crop_height = min(crop_height, h)
+
+        # Calculate the starting point for cropping to keep the crop centered
+        crop_start_x = (w - crop_width) // 2
+        crop_start_y = (h - crop_height) // 2
+
+        # Perform the cropping
+        cropped_image = img[crop_start_y:(crop_start_y + crop_height), crop_start_x:(crop_start_x + crop_width)]
+
+        # Get the shape of the cropped image
+        hc, wc, cc = cropped_image.shape
+        #print("Cropped Width:", wc)
+        #rint("Cropped Height:", hc)
+        #print("nk: ", nk)
+
+        #If needed to use cropped_image in the subsequent part of your program
+        img = cropped_image
+
+        cropped_u = 250
+        cropped_v = 250
+
+        k_crop = np.array([[nk[0,0], 0, cropped_u], [0, nk[1,1], cropped_v], [0, 0, 1]])
 
         # convert img to cv2 with bgr8 encoding
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)

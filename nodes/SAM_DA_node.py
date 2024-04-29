@@ -58,7 +58,7 @@ class SAM_DA_node:
         # internal variables
         self.node_name = rospy.get_name()
         self.detector = yolo.Yolov7Detector()
-        self.detector.conf_thres = 0.75
+        self.detector.conf_thres = 0.15
         self.bridge = cv_bridge.CvBridge()
         self.counter = 0
         # TODO: make rosparam
@@ -345,6 +345,7 @@ class SAM_DA_node:
 
         [backpack_x, backpack_y] = [500, 500]
 
+
         _classes, _boxes, _confidences = self.detector.detect(img)
         detections = Detection2DArray()
         detections.header = img_msg.header
@@ -356,7 +357,8 @@ class SAM_DA_node:
                     backpack_x = (box[0]+box[2])/2
                     backpack_y = (box[1]+box[3])/2
 
-                    print("Backpack found!")
+                    print("Backpack seen!")
+
 
         # make an array of track object types and call them all "landmark"
         track_classes = []
@@ -364,7 +366,7 @@ class SAM_DA_node:
             track_classes.append("landmark")
 
         if self.backpack_found_idx is not None:
-            track_classes[self.backpack_found_idx] = "backpack"
+            track_classes[self.backpack_found_idx-1] = "backpack"
 
         #print("Track Classes: ", track_classes)
 
@@ -388,13 +390,16 @@ class SAM_DA_node:
             current_sift = current_desc[1]
             #print(f"current sift: {current_sift}")
 
-            # if current_px_coords are less than 0.5 away from [backpack_x, backpack_y], change track_classes[track.trackId] to "backpack"
+            # if current_px_coords are less than 20 away from [backpack_x, backpack_y], change track_classes[track.trackId] to "backpack"
             if current_px_coords is not None:
                 dist = np.linalg.norm(np.array([backpack_x, backpack_y]) - np.array([current_px_coords[0], current_px_coords[1]]))
-                if dist < 0.2:
+                if (backpack_x != 500 and backpack_y != 500):
+                    print(f"Distance from track {track.trackId} to backpack: {dist}")
+                if dist < 10:
                     track_classes[track.trackId] = "backpack"
                     self.backpack_found_idx = track.trackId
-                    print("Backpack found!")
+                    #print("Backpack found!")
+                    print("backpack associated with track id: ", track.trackId)
 
             # If the track has been seen in 3 frames and pixel coordinates is not none, add all three to the measurement packet
             if num_track_id == 3 and current_px_coords is not None:
